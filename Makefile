@@ -28,13 +28,8 @@ tmpnb: minimal-image tmpnb-image
 	docker run --net=host -d -e CONFIGPROXY_AUTH_TOKEN=devtoken \
 		--name tmpnb \
 		-v /var/run/docker.sock:/docker.sock jupyter/tmpnb python orchestrate.py \
-<<<<<<< ours
-		--image=jupyter/all-spark-notebook --cull_timeout=$(CULL_TIMEOUT) --cull_period=$(CULL_PERIOD) \
-		--logging=$(LOGGING) --pool_size=$(POOL_SIZE) --host-directories=/tmp/data:/home/jovyan/work:rw
-=======
 		--image=jupyter/minimal-notebook --cull_timeout=$(CULL_TIMEOUT) --cull_period=$(CULL_PERIOD) \
 		--logging=$(LOGGING) --pool_size=$(POOL_SIZE)
->>>>>>> theirs
 
 dev: cleanup proxy tmpnb open
 
