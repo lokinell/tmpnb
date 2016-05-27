@@ -30,7 +30,7 @@ tmpnb: all-image tmpnb-image
 		--name tmpnb \
 		-v /var/run/docker.sock:/docker.sock jupyter/tmpnb python orchestrate.py \
 		--image=jupyter/all-spark-notebook --cull_timeout=$(CULL_TIMEOUT) --cull_period=$(CULL_PERIOD) \
-		--logging=$(LOGGING) --pool_size=$(POOL_SIZE)
+		--logging=$(LOGGING) --pool_size=$(POOL_SIZE) --host-directories=/tmp/data:/home/jovyan/work:rw
 
 dev: cleanup proxy tmpnb open
 
@@ -42,7 +42,7 @@ open:
 cleanup:
 	-docker stop `docker ps -aq --filter name=tmpnb --filter name=proxy --filter name=minimal-notebook`
 	-docker rm   `docker ps -aq --filter name=tmpnb --filter name=proxy --filter name=minimal-notebook`
-	-docker images -q --filter "dangling=true" | xargs docker rmi
+#	-docker images -q --filter "dangling=true" | xargs docker rmi
 
 log-tmpnb:
 	docker logs -f tmpnb

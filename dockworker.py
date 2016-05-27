@@ -11,7 +11,7 @@ from tornado import gen, web
 from tornado.log import app_log
 
 ContainerConfig = namedtuple('ContainerConfig', [
-    'image', 'command', 'mem_limit', 'cpu_quota', 'cpu_shares', 'container_ip',
+    'image', 'command', 'mem_limit', 'cpu_shares', 'container_ip',
     'container_port', 'container_user', 'host_network', 'host_directories',
     'extra_hosts'
 ])
@@ -121,18 +121,27 @@ class DockerSpawner():
         if container_config.host_directories:
             directories = container_config.host_directories.split(",")
             for index, item in enumerate(directories):
-                directory = item.split(":")[0]
+                directory = item.split(":")[0] + "/" + base_path 
+                bind_directory = item.split(":")[1]
                 try:
-                    permissions = item.split(":")[1]
+                    permissions = item.split(":")[2]
                 except IndexError:
                     permissions = 'rw'
-
-                volumes.append('/mnt/vol' + str(index))
+                volumes.append(bind_directory)
+                app_log.info("append volumes:[%s:%s]",directory,bind_directory)    
+                '''
+                temporary solution:
+                hardcode user directory
+                '''
+                #d = "/home/jovyan/work"
+                '''
+                end temporary solution 
+                '''
                 volume_bindings[directory] = {
-                    'bind': '/mnt/vol' + str(index),
+                    'bind': bind_directory,
                     'mode': permissions
                 }
-
+                app_log.info("volume_bindings {}".format(volume_bindings))
         extra_hosts = dict(map(lambda h: tuple(h.split(':')),
                                container_config.extra_hosts))
 
@@ -141,12 +150,11 @@ class DockerSpawner():
             network_mode='host' if container_config.host_network else 'bridge',
             binds=volume_bindings,
             port_bindings=port_bindings,
-            extra_hosts=extra_hosts,
-            cpu_quota=container_config.cpu_quota,
+            extra_hosts=extra_hosts
         )
 
         host_config = create_host_config(**host_config)
-        
+
         cpu_shares = None
 
         if container_config.cpu_shares:
@@ -169,6 +177,7 @@ class DockerSpawner():
 
         container_id = resp['Id']
         app_log.info("Created container {}".format(container_id))
+        app_log.info("===========> [%s]", base_path)
 
         yield self._with_retries(self.docker_client.start,
                                  container_id)
