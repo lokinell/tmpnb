@@ -11,7 +11,8 @@ images: tmpnb-image demo-image minimal-image
 
 minimal-image:
 	docker pull jupyter/minimal-notebook
-
+all-image:
+	docker pull jupyter/all-spark-notebook
 demo-image:
 	docker pull jupyter/demo
 
@@ -24,11 +25,11 @@ proxy: proxy-image
 		jupyter/configurable-http-proxy \
 		--default-target http://127.0.0.1:9999
 
-tmpnb: minimal-image tmpnb-image
+tmpnb: all-image tmpnb-image
 	docker run --net=host -d -e CONFIGPROXY_AUTH_TOKEN=devtoken \
 		--name tmpnb \
 		-v /var/run/docker.sock:/docker.sock jupyter/tmpnb python orchestrate.py \
-		--image=jupyter/minimal-notebook --cull_timeout=$(CULL_TIMEOUT) --cull_period=$(CULL_PERIOD) \
+		--image=jupyter/all-spark-notebook --cull_timeout=$(CULL_TIMEOUT) --cull_period=$(CULL_PERIOD) \
 		--logging=$(LOGGING) --pool_size=$(POOL_SIZE)
 
 dev: cleanup proxy tmpnb open
